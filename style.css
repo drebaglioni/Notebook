@@ -1,0 +1,517 @@
+:root {
+  --bg: #ffffff;
+  --fg: #000000;
+  --accent: #FF4F00;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--fg);
+  background: var(--bg);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.home-trigger {
+  position: fixed;
+  top: 1.2rem;
+  right: 1.5rem;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--fg);
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.home-trigger svg {
+  width: 22px;
+  height: 22px;
+  fill: var(--fg);
+  stroke: var(--fg);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+.home-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 70;
+}
+
+.home-overlay.hidden {
+  display: none;
+}
+
+.home-panel {
+  width: min(720px, calc(100% - 2rem));
+  background: var(--bg);
+  border: 1px solid var(--fg);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.home-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.home-eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.home-panel-header h1 {
+  margin: 0.2rem 0 0;
+  font-size: 1.6rem;
+}
+
+.home-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.home-sort {
+  display: inline-flex;
+  border: 1px solid var(--fg);
+}
+
+.sort-btn {
+  border: none;
+  background: transparent;
+  padding: 0.4rem 0.8rem;
+  font: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.sort-btn.active {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.home-new-btn,
+.home-close-btn {
+  border: 1px solid var(--fg);
+  background: transparent;
+  padding: 0.4rem 0.9rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.home-pinned-btn {
+  border: 1px solid var(--fg);
+  background: transparent;
+  padding: 0.4rem 0.9rem;
+  font: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.home-pinned-btn.active {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.home-note-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: min(60vh, 480px);
+  overflow-y: auto;
+}
+
+.home-note-list li {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding-bottom: 0.6rem;
+}
+
+.home-note-list li:last-child {
+  border-bottom: none;
+}
+
+.home-note-list button {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.home-note-list strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.home-note-meta {
+  display: flex;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.home-note-snippet {
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.canvas {
+  max-width: 650px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 5vh 1.5rem 8vh;
+}
+
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.note-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.pin-toggle {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--fg);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.pin-toggle svg {
+  width: 24px;
+  height: 24px;
+  fill: transparent;
+  stroke: var(--fg);
+  stroke-width: 1.5;
+}
+
+.pin-toggle.is-pinned svg {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+.note-title {
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  font-weight: 600;
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: var(--fg);
+}
+
+.note-title:focus {
+  outline: none;
+}
+
+.note-meta {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(0, 0, 0, 0.65);
+  white-space: nowrap;
+}
+
+.note-content {
+  min-height: 520px;
+  padding: 2rem 0;
+  font: inherit;
+  line-height: 1.7;
+  color: var(--fg);
+  background: transparent;
+  white-space: pre-wrap;
+  word-break: break-word;
+  cursor: text;
+}
+
+.note-content:focus {
+  outline: none;
+}
+
+.note-content:empty::before {
+  content: attr(data-placeholder);
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.wiki-link {
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.wiki-link.missing {
+  text-decoration: underline dashed var(--accent);
+  opacity: 0.85;
+}
+
+.link-suggestions {
+  border: 1px solid var(--fg);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  max-width: 320px;
+}
+
+.link-suggestions.hidden {
+  display: none;
+}
+
+.link-suggestion {
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 0.5rem 0.8rem;
+  font: inherit;
+  color: var(--fg);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.link-suggestion:last-child {
+  border-bottom: none;
+}
+
+.link-suggestion.active,
+.link-suggestion:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.note-status {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.delete-btn {
+  border: none;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.6);
+  cursor: pointer;
+  padding: 0;
+}
+
+.delete-btn:hover {
+  color: var(--fg);
+}
+
+.backlinks {
+  margin-top: 3rem;
+}
+
+.backlinks {
+  border-top: 1px solid var(--accent);
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+}
+
+.backlinks h2 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.reference-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.reference-list li button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.reference-list li {
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.similar-notes {
+  margin-top: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.similar-notes h3 {
+  margin: 0;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+#similar-notes-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.similar-note-item button {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  color: var(--fg);
+}
+
+.similar-note-meta {
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.55);
+  margin-top: 0.15rem;
+}
+
+.similar-hint {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.55);
+  font-style: italic;
+}
+
+.palette {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.palette.hidden {
+  display: none;
+}
+
+.palette-panel {
+  width: min(540px, calc(100% - 2rem));
+  border: 1px solid var(--fg);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+#palette-search {
+  border: none;
+  border-bottom: 1px solid var(--fg);
+  padding: 0.9rem;
+  font: inherit;
+  background: transparent;
+  color: var(--fg);
+}
+
+#palette-search:focus {
+  outline: none;
+}
+
+#palette-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.palette-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 0.8rem 0.9rem;
+}
+
+.palette-item:last-child {
+  border-bottom: none;
+}
+
+.palette-item strong {
+  font-weight: 600;
+}
+
+.palette-item span {
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.palette-item.active {
+  border-left: 4px solid var(--accent);
+  background: rgba(255, 79, 0, 0.08);
+}
+
+.snippet-match {
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.reference-link {
+  color: var(--accent);
+}
+
+::selection {
+  background: rgba(255, 79, 0, 0.25);
+}
+
+.hidden {
+  display: none;
+}

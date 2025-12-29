@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Notebook</title>
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <button id="home-trigger" class="home-trigger" type="button" aria-label="Open notebook home">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M4 10.5 12 3l8 7.5V21H4z" />
+        <path d="M9 21v-6h6v6" />
+      </svg>
+    </button>
+    <main class="canvas">
+      <form id="note-form" class="note">
+        <input id="note-id" type="hidden" />
+        <div class="note-title-row">
+          <button id="pin-toggle" class="pin-toggle" type="button" aria-pressed="false" aria-label="Pin note">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-3-7 3V4a1 1 0 0 1 1-1z" />
+            </svg>
+          </button>
+          <input
+            id="note-title"
+            class="note-title"
+            placeholder="Untitled"
+            autocomplete="off"
+          />
+        </div>
+        <div id="metadata-line" class="note-meta"></div>
+        <div
+          id="note-content"
+          class="note-content"
+          contenteditable="true"
+          spellcheck="false"
+          data-placeholder="Write in Markdown. Use [[links]] to reference other notes."
+        ></div>
+        <div id="link-suggestions" class="link-suggestions hidden"></div>
+        <div class="note-status">
+          <span id="save-status">Saved</span>
+          <button id="delete-note" type="button" class="delete-btn">
+            Delete note
+          </button>
+        </div>
+      </form>
+      <section class="backlinks">
+        <h2>This page is referenced in</h2>
+        <ul id="linked-references" class="reference-list"></ul>
+        <div class="similar-notes">
+          <h3>Similar notes</h3>
+          <ul id="similar-notes-list"></ul>
+        </div>
+      </section>
+    </main>
+
+    <div
+      id="command-palette"
+      class="palette hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="palette-search"
+    >
+      <div class="palette-panel">
+        <input
+          id="palette-search"
+          type="search"
+          placeholder="Search notes"
+          autocomplete="off"
+        />
+        <ul id="palette-results"></ul>
+      </div>
+    </div>
+
+    <div
+      id="home-overlay"
+      class="home-overlay hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="home-heading"
+    >
+      <div class="home-panel">
+        <header class="home-panel-header">
+          <div>
+            <p class="home-eyebrow">Notebook</p>
+            <h1 id="home-heading">All notes</h1>
+          </div>
+          <div class="home-actions">
+            <div class="home-sort" role="group" aria-label="Sort notes">
+              <button class="sort-btn active" data-sort="updated" type="button">Recent</button>
+              <button class="sort-btn" data-sort="alpha" type="button">A–Z</button>
+            </div>
+            <button id="home-pinned-toggle" class="home-pinned-btn" type="button">Pinned only</button>
+            <button id="home-new-note" class="home-new-btn" type="button">New note</button>
+            <button id="home-close" class="home-close-btn" type="button" aria-label="Close home">
+              Close
+            </button>
+          </div>
+        </header>
+        <ul id="home-note-list" class="home-note-list"></ul>
+      </div>
+    </div>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
