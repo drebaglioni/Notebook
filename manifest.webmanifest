@@ -8,15 +8,15 @@
   "theme_color": "#f8fafc",
   "icons": [
     {
-      "src": "icons/notebook-icon.svg",
+      "src": "icons/Gemini_Generated_Image_oriqu3oriqu3oriq.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/notebook-icon.svg",
+      "src": "icons/Gemini_Generated_Image_oriqu3oriqu3oriq.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable any"
     }
   ]
