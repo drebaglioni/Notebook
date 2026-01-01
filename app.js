@@ -1,3 +1,5 @@
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
+
 const STORAGE_KEY = "notebook-notes";
 const AUTOSAVE_DELAY = 800;
 
@@ -39,6 +41,8 @@ let pendingDecoration = null;
 let pendingDecorationCaret = null;
 let homeSortMode = "updated";
 let homePinnedOnly = false;
+let supabase = null;
+let remoteReady = false;
 const STOPWORDS = new Set([
   "the",
   "and",
@@ -170,6 +174,102 @@ function buildDerivedData() {
     docFreq,
     linkMaps,
   };
+}
+
+async function initRemote() {
+  const url = window.SUPABASE_URL;
+  const key = window.SUPABASE_ANON_KEY;
+  if (!url || !key) return;
+  try {
+    supabase = createClient(url, key);
+    remoteReady = true;
+    await syncFromRemote();
+  } catch (error) {
+    console.warn("Supabase init failed", error);
+  }
+}
+
+function remoteEnabled() {
+  return remoteReady && !!supabase;
+}
+
+function mapRemoteRow(row) {
+  if (!row) return null;
+  const meta = row.metadata || {};
+  return {
+    id: row.id,
+    title: row.title,
+    content: row.content || "",
+    metadata: {
+      createdAt: meta.createdAt || row.created_at || new Date().toISOString(),
+      updatedAt: meta.updatedAt || row.updated_at || row.created_at || new Date().toISOString(),
+      autoTags: meta.autoTags || [],
+      pinned: typeof row.pinned === "boolean" ? row.pinned : !!meta.pinned,
+    },
+  };
+}
+
+async function syncFromRemote() {
+  if (!remoteEnabled()) return;
+  const { data, error } = await supabase.from("notes").select("*");
+  if (error) {
+    console.warn("Remote fetch failed", error);
+    return;
+  }
+  const remoteNotes = (data || []).map(mapRemoteRow).filter(Boolean);
+  if (!remoteNotes.length) return;
+  mergeRemoteNotes(remoteNotes);
+}
+
+function mergeRemoteNotes(remoteNotes) {
+  const map = new Map();
+  [...notes, ...remoteNotes].forEach((note) => {
+    if (!note?.id) return;
+    const existing = map.get(note.id);
+    if (!existing) {
+      map.set(note.id, note);
+      return;
+    }
+    const currentUpdated = new Date(existing.metadata?.updatedAt || 0).getTime();
+    const incomingUpdated = new Date(note.metadata?.updatedAt || 0).getTime();
+    if (incomingUpdated >= currentUpdated) {
+      map.set(note.id, note);
+    }
+  });
+  notes = Array.from(map.values()).sort(
+    (a, b) => new Date(b.metadata?.updatedAt || 0) - new Date(a.metadata?.updatedAt || 0)
+  );
+  persistNotes();
+  invalidateDerivedData();
+  if (selectedNoteId) {
+    selectNote(selectedNoteId);
+  } else if (notes[0]) {
+    selectNote(notes[0].id);
+  } else {
+    startNewNote();
+  }
+  refreshHomeIfOpen();
+}
+
+async function pushNoteToRemote(note) {
+  if (!remoteEnabled() || !note?.id) return;
+  const payload = {
+    id: note.id,
+    title: note.title,
+    content: note.content || "",
+    metadata: note.metadata || {},
+    created_at: note.metadata?.createdAt,
+    updated_at: note.metadata?.updatedAt,
+    pinned: !!note.metadata?.pinned,
+  };
+  const { error } = await supabase.from("notes").upsert(payload);
+  if (error) console.warn("Remote upsert failed", error);
+}
+
+async function deleteRemoteNote(id) {
+  if (!remoteEnabled() || !id) return;
+  const { error } = await supabase.from("notes").delete().eq("id", id);
+  if (error) console.warn("Remote delete failed", error);
 }
 
 function getCurrentPinState() {
@@ -360,6 +460,7 @@ function autoTagsFrom(date) {
 function upsertNote({ id, title, content, pinned }) {
   const now = new Date();
   const existing = notes.find((note) => note.id === id);
+  let savedNote = null;
 
   if (existing) {
     existing.title = title;
@@ -370,6 +471,7 @@ function upsertNote({ id, title, content, pinned }) {
       existing.metadata.pinned = pinned;
     }
     selectedNoteId = existing.id;
+    savedNote = existing;
   } else {
     const newNote = {
       id: id || crypto.randomUUID?.() || Date.now().toString(36),
@@ -384,16 +486,19 @@ function upsertNote({ id, title, content, pinned }) {
     };
     notes.unshift(newNote);
     selectedNoteId = newNote.id;
+    savedNote = newNote;
   }
 
   invalidateDerivedData();
   persistNotes();
+  pushNoteToRemote(savedNote);
 }
 
 function deleteNote(id) {
   notes = notes.filter((note) => note.id !== id);
   invalidateDerivedData();
   persistNotes();
+  deleteRemoteNote(id);
   selectedNoteId = notes[0]?.id ?? null;
   if (selectedNoteId) {
     selectNote(selectedNoteId);
@@ -1099,6 +1204,7 @@ pinToggleBtn?.addEventListener("click", () => {
       note.metadata = note.metadata || {};
       note.metadata.pinned = next;
       persistNotes();
+      pushNoteToRemote(note);
       refreshHomeIfOpen();
     }
   } else {
@@ -1181,11 +1287,16 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-if (selectedNoteId) {
-  selectNote(selectedNoteId);
-} else {
-  startNewNote();
+async function bootstrap() {
+  if (selectedNoteId) {
+    selectNote(selectedNoteId);
+  } else {
+    startNewNote();
+  }
+  await initRemote();
 }
+
+bootstrap();
 
 function getCaretOffset() {
   const selection = window.getSelection();
