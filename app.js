@@ -10,6 +10,7 @@ const noteContentField = document.getElementById("note-content");
 const metadataLineEl = document.getElementById("metadata-line");
 const saveStatusEl = document.getElementById("save-status");
 const deleteBtn = document.getElementById("delete-note");
+const exportBtn = document.getElementById("export-notes");
 const pinToggleBtn = document.getElementById("pin-toggle");
 const linkSuggestionsEl = document.getElementById("link-suggestions");
 const linkedReferencesEl = document.getElementById("linked-references");
@@ -506,6 +507,24 @@ function deleteNote(id) {
     startNewNote();
   }
   refreshHomeIfOpen();
+}
+
+function exportAllNotes() {
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    notes,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "notebook-export.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 function selectNote(id) {
@@ -1210,6 +1229,10 @@ pinToggleBtn?.addEventListener("click", () => {
   } else {
     scheduleAutosave();
   }
+});
+
+exportBtn?.addEventListener("click", () => {
+  exportAllNotes();
 });
 
 homeTrigger?.addEventListener("click", openHome);

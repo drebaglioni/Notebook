@@ -343,6 +343,22 @@ body {
   color: var(--fg);
 }
 
+.export-btn {
+  border: 1px solid var(--fg);
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  padding: 0.25rem 0.6rem;
+  font: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.export-btn:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+
 .backlinks {
   margin-top: 3rem;
 }
