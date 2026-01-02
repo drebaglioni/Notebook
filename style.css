@@ -326,34 +326,39 @@ body {
 .note-status {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  gap: 0.8rem;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
 }
 
+.export-btn,
 .delete-btn {
-  border: none;
-  background: transparent;
-  color: rgba(0, 0, 0, 0.6);
-  cursor: pointer;
-  padding: 0;
-}
-
-.delete-btn:hover {
-  color: var(--fg);
-}
-
-.export-btn {
   border: 1px solid var(--fg);
   background: transparent;
   color: var(--fg);
   cursor: pointer;
-  padding: 0.25rem 0.6rem;
+  padding: 0.35rem 0.75rem;
   font: inherit;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.delete-btn {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.export-btn:hover,
+.delete-btn:hover {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.export-btn:active,
+.delete-btn:active {
+  transform: translateY(1px);
 }
 
 .export-btn:hover {
