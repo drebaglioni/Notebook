@@ -329,6 +329,8 @@ body {
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  gap: 0.8rem;
+  align-items: center;
 }
 
 .delete-btn {
@@ -357,6 +359,25 @@ body {
 .export-btn:hover {
   background: var(--fg);
   color: var(--bg);
+}
+
+.remote-status {
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+}
+
+.remote-status.connected {
+  color: var(--fg);
+}
+
+.remote-status.local-only {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.remote-status.error {
+  color: #b00020;
 }
 
 .backlinks {

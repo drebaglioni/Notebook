@@ -1,11 +1,12 @@
-const CACHE_NAME = "notebook-cache-v3";
+const CACHE_NAME = "notebook-cache-v4";
 const ASSETS = [
   "./",
   "./index.html",
   "./style.css",
   "./app.js",
   "./manifest.webmanifest",
-  "./icons/notebook-icon.svg"
+  "./icons/notebook-icon.svg",
+  "./supabase-config.js"
 ];
 
 self.addEventListener("install", (event) => {

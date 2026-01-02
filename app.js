@@ -11,6 +11,8 @@ const metadataLineEl = document.getElementById("metadata-line");
 const saveStatusEl = document.getElementById("save-status");
 const deleteBtn = document.getElementById("delete-note");
 const exportBtn = document.getElementById("export-notes");
+const remoteStatusEl = document.getElementById("remote-status");
+const pullRemoteBtn = document.getElementById("pull-remote");
 const pinToggleBtn = document.getElementById("pin-toggle");
 const linkSuggestionsEl = document.getElementById("link-suggestions");
 const linkedReferencesEl = document.getElementById("linked-references");
@@ -44,6 +46,7 @@ let homeSortMode = "updated";
 let homePinnedOnly = false;
 let supabase = null;
 let remoteReady = false;
+let lastRemoteSync = null;
 const STOPWORDS = new Set([
   "the",
   "and",
@@ -177,16 +180,41 @@ function buildDerivedData() {
   };
 }
 
+function updateRemoteStatus(state, detail = "") {
+  if (!remoteStatusEl) return;
+  remoteStatusEl.classList.remove("connected", "local-only", "error");
+  if (state === "connected") {
+    remoteStatusEl.textContent = "Remote: connected";
+    remoteStatusEl.classList.add("connected");
+  } else if (state === "local") {
+    remoteStatusEl.textContent = "Remote: local only";
+    remoteStatusEl.classList.add("local-only");
+  } else if (state === "syncing") {
+    remoteStatusEl.textContent = "Remote: syncing…";
+  } else if (state === "error") {
+    remoteStatusEl.textContent = `Remote error${detail ? `: ${detail}` : ""}`;
+    remoteStatusEl.classList.add("error");
+  } else {
+    remoteStatusEl.textContent = "Remote: checking…";
+  }
+}
+
 async function initRemote() {
   const url = window.SUPABASE_URL;
   const key = window.SUPABASE_ANON_KEY;
-  if (!url || !key) return;
+  if (!url || !key) {
+    updateRemoteStatus("local");
+    return;
+  }
+  updateRemoteStatus("syncing");
   try {
     supabase = createClient(url, key);
     remoteReady = true;
     await syncFromRemote();
+    updateRemoteStatus("connected");
   } catch (error) {
     console.warn("Supabase init failed", error);
+    updateRemoteStatus("error", "init failed");
   }
 }
 
@@ -212,14 +240,18 @@ function mapRemoteRow(row) {
 
 async function syncFromRemote() {
   if (!remoteEnabled()) return;
+  updateRemoteStatus("syncing");
   const { data, error } = await supabase.from("notes").select("*");
   if (error) {
     console.warn("Remote fetch failed", error);
+    updateRemoteStatus("error", "fetch failed");
     return;
   }
   const remoteNotes = (data || []).map(mapRemoteRow).filter(Boolean);
   if (!remoteNotes.length) return;
   mergeRemoteNotes(remoteNotes);
+  lastRemoteSync = new Date();
+  updateRemoteStatus("connected");
 }
 
 function mergeRemoteNotes(remoteNotes) {
@@ -264,13 +296,21 @@ async function pushNoteToRemote(note) {
     pinned: !!note.metadata?.pinned,
   };
   const { error } = await supabase.from("notes").upsert(payload);
-  if (error) console.warn("Remote upsert failed", error);
+  if (error) {
+    console.warn("Remote upsert failed", error);
+    updateRemoteStatus("error", "save failed");
+  } else {
+    updateRemoteStatus("connected");
+  }
 }
 
 async function deleteRemoteNote(id) {
   if (!remoteEnabled() || !id) return;
   const { error } = await supabase.from("notes").delete().eq("id", id);
-  if (error) console.warn("Remote delete failed", error);
+  if (error) {
+    console.warn("Remote delete failed", error);
+    updateRemoteStatus("error", "delete failed");
+  }
 }
 
 function getCurrentPinState() {
@@ -1233,6 +1273,10 @@ pinToggleBtn?.addEventListener("click", () => {
 
 exportBtn?.addEventListener("click", () => {
   exportAllNotes();
+});
+
+pullRemoteBtn?.addEventListener("click", () => {
+  syncFromRemote();
 });
 
 homeTrigger?.addEventListener("click", openHome);
