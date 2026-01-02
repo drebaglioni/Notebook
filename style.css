@@ -328,7 +328,7 @@ body {
   justify-content: space-between;
   align-items: center;
   gap: 0.8rem;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   letter-spacing: 0.06em;
 }
 
@@ -360,6 +360,7 @@ body {
   cursor: pointer;
   padding: 0.35rem 0.75rem;
   font: inherit;
+  font-size: 0.82rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
@@ -386,7 +387,7 @@ body {
 }
 
 .remote-status {
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   letter-spacing: 0.04em;
   color: rgba(0, 0, 0, 0.7);
   white-space: nowrap;
