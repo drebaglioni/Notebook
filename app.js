@@ -13,6 +13,7 @@ const deleteBtn = document.getElementById("delete-note");
 const exportBtn = document.getElementById("export-notes");
 const remoteStatusEl = document.getElementById("remote-status");
 const pullRemoteBtn = document.getElementById("pull-remote");
+const insertTableBtn = document.getElementById("insert-table");
 const pinToggleBtn = document.getElementById("pin-toggle");
 const linkSuggestionsEl = document.getElementById("link-suggestions");
 const linkedReferencesEl = document.getElementById("linked-references");
@@ -47,6 +48,10 @@ let homePinnedOnly = false;
 let supabase = null;
 let remoteReady = false;
 let lastRemoteSync = null;
+const STORAGE_BUCKET =
+  typeof window !== "undefined" && window.SUPABASE_BUCKET
+    ? window.SUPABASE_BUCKET
+    : "note-images";
 const STOPWORDS = new Set([
   "the",
   "and",
@@ -311,6 +316,34 @@ async function deleteRemoteNote(id) {
     console.warn("Remote delete failed", error);
     updateRemoteStatus("error", "delete failed");
   }
+}
+
+async function uploadImage(file) {
+  if (!remoteEnabled()) {
+    updateRemoteStatus("local");
+    alert("Enable Supabase to upload images.");
+    return null;
+  }
+  if (!file) return null;
+  const ext = file.name?.split(".").pop()?.toLowerCase() || "png";
+  const path = `images/${selectedNoteId || "temp"}/${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2)}.${ext}`;
+  updateRemoteStatus("syncing");
+  const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file, {
+    cacheControl: "3600",
+    upsert: true,
+    contentType: file.type || "image/png",
+  });
+  if (error) {
+    console.warn("Image upload failed", error);
+    updateRemoteStatus("error", "image upload failed");
+    return null;
+  }
+  const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+  const url = data?.publicUrl;
+  updateRemoteStatus("connected");
+  return url || null;
 }
 
 function getCurrentPinState() {
@@ -954,6 +987,17 @@ function applyLinkSuggestion(title) {
   scheduleAutosave();
 }
 
+function insertTextAtCursor(text) {
+  const cursor = getCaretOffset();
+  const raw = noteContentField.dataset.raw || "";
+  const before = raw.slice(0, cursor);
+  const after = raw.slice(cursor);
+  const updated = `${before}${text}${after}`;
+  renderEditorContent(updated);
+  setCaretOffset(before.length + text.length);
+  scheduleAutosave();
+}
+
 function handleLinkAutocomplete(eventType) {
   if (eventType === "blur") {
     setTimeout(() => hideLinkSuggestions(), 120);
@@ -1216,6 +1260,22 @@ noteContentField.addEventListener("input", () => {
   updatePostBodyVisibility();
 });
 
+noteContentField.addEventListener("paste", async (event) => {
+  const items = event.clipboardData?.items || [];
+  const imageItem = Array.from(items).find((item) =>
+    item.type?.toLowerCase().startsWith("image/")
+  );
+  if (imageItem) {
+    event.preventDefault();
+    const file = imageItem.getAsFile();
+    const url = await uploadImage(file);
+    if (url) {
+      insertTextAtCursor(`\n![image](${url})\n`);
+    }
+    return;
+  }
+});
+
 noteContentField.addEventListener("blur", () => handleLinkAutocomplete("blur"));
 
 noteContentField.addEventListener("keydown", (event) => {
@@ -1277,6 +1337,10 @@ exportBtn?.addEventListener("click", () => {
 
 pullRemoteBtn?.addEventListener("click", () => {
   syncFromRemote();
+});
+
+insertTableBtn?.addEventListener("click", () => {
+  insertTextAtCursor("\n| Column A | Column B |\n| --- | --- |\n| Value 1 | Value 2 |\n");
 });
 
 homeTrigger?.addEventListener("click", openHome);
